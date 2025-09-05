@@ -1,7 +1,7 @@
-// Service Worker for performance optimization and offline support
-const CACHE_NAME = 'youtube-clone-v1';
-const STATIC_CACHE_NAME = 'youtube-clone-static-v1';
-const DYNAMIC_CACHE_NAME = 'youtube-clone-dynamic-v1';
+// Service Worker for SearchAI - performance optimization and offline support
+const CACHE_NAME = 'searchai-v1';
+const STATIC_CACHE_NAME = 'searchai-static-v1';
+const DYNAMIC_CACHE_NAME = 'searchai-dynamic-v1';
 
 // Files to cache immediately
 const STATIC_FILES = [
@@ -143,7 +143,10 @@ function isStaticAsset(request) {
 // Check if request is for an API endpoint
 function isAPIRequest(request) {
   const url = new URL(request.url);
-  return url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/');
+  // Handle both local development and production API calls
+  return url.pathname.startsWith('/api/') || 
+         url.hostname.includes('onrender.com') ||
+         url.hostname.includes('localhost');
 }
 
 // Background sync for offline actions
@@ -189,7 +192,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('YouTube Clone', options)
+    self.registration.showNotification('SearchAI', options)
   );
 });
 

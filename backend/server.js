@@ -15,15 +15,62 @@ import collectionRoutes from './routes/collections.js';
 // Load environment variables
 dotenv.config();
 
+// Validate required environment variables
+const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars);
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  } else {
+    console.log('⚠️ Running in development mode without all required env vars');
+  }
+}
+
+console.log('🔧 Environment Configuration:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- PORT:', process.env.PORT || 5000);
+console.log('- CORS_ORIGIN:', process.env.CORS_ORIGIN || 'Not set');
+console.log('- MongoDB URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
+console.log('- JWT Secret:', process.env.JWT_SECRET ? 'Set' : 'Not set');
+console.log('- Gemini API Key:', process.env.GEMINI_API_KEY ? 'Set' : 'Not set');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
-}));
+
+// Enhanced CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.CORS_ORIGIN,
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:4173'
+    ].filter(Boolean); // Remove any undefined values
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked origin:', origin);
+      console.log('✅ Allowed origins:', allowedOrigins);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-Total-Count'],
+  maxAge: 86400 // 24 hours
+};
+
+app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -61,12 +108,22 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
+  const healthCheck = {
     status: 'OK',
     message: 'AI Search Backend is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
-  });
+    environment: process.env.NODE_ENV,
+    version: '1.0.0',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    services: {
+      database: 'Connected', // Will be updated based on actual connection
+      cors: process.env.CORS_ORIGIN ? 'Configured' : 'Default',
+      gemini: process.env.GEMINI_API_KEY ? 'Configured' : 'Not configured'
+    }
+  };
+  
+  res.status(200).json(healthCheck);
 });
 
 // API routes

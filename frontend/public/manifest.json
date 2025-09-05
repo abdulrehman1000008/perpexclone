@@ -1,7 +1,7 @@
 {
-  "name": "YouTube Clone - AI Search",
-  "short_name": "YT Clone",
-  "description": "AI-powered search application with advanced features",
+  "name": "SearchAI - AI-Powered Search Engine",
+  "short_name": "SearchAI",
+  "description": "AI-powered conversational search application with advanced features",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
