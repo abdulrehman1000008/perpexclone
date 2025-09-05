@@ -40,6 +40,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Request tracking middleware (must be before routes)
 app.use(requestTracker);
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'AI Search Backend API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      search: '/api/search',
+      users: '/api/users',
+      history: '/api/history',
+      collections: '/api/collections'
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
