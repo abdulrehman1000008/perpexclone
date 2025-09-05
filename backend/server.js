@@ -55,11 +55,16 @@ const corsOptions = {
       'http://localhost:4173'
     ].filter(Boolean); // Remove any undefined values
     
-    if (allowedOrigins.includes(origin)) {
+    // Check if origin matches allowed origins or Vercel preview deployments
+    const isAllowed = allowedOrigins.includes(origin) || 
+                     (origin && origin.match(/^https:\/\/perpexclone.*\.vercel\.app$/));
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.log('❌ CORS blocked origin:', origin);
       console.log('✅ Allowed origins:', allowedOrigins);
+      console.log('✅ Vercel pattern allowed: https://perpexclone*.vercel.app');
       callback(new Error('Not allowed by CORS'));
     }
   },
